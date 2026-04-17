@@ -21,6 +21,37 @@ jobs:
           aws-region: eu-north-1
 
       - name: Start Instance Refresh
+        id: refresh
         run: |
-          aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name devops-asg
+            REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name devops-asg \
+            --query 'InstanceRefreshId' \
+            --output text)
+
+            echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
+
+      - name: Wait for Instance Refresh to Complete
+        run: |
+            echo "Waiting for instance refresh to complete..."
+
+            while true; do
+                STATUS=$(aws autoscaling describe-instance-refreshes \
+                    --auto-scaling-group-name devops-asg \
+                    --query "InstanceRefreshes[0].Status" \
+                    --output text)
+
+                echo "Current status: $STATUS"
+
+                if [ "$STATUS" = "Successful" ]; then
+                    echo "Deployment successful"
+                    break
+                fi
+
+                if [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ]; then
+                    echo "Deployment failed"
+                    exit 1
+                fi
+
+                sleep 20
+            done
+
