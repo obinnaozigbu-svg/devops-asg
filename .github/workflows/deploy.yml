@@ -55,3 +55,16 @@ jobs:
                 sleep 20
             done
 
+      - name: Check final deployment status
+        run: |
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name devops-asg \
+                --query "InstanceRefreshes[0].Status" \
+                --output text)
+
+            echo "Final status: $STATUS"
+
+            if [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ]; then
+                echo "Deployment failed — triggering rollback"
+                exit 1
+            fi
