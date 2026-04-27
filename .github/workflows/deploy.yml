@@ -43,3 +43,9 @@ jobs:
             --cluster devops-cluster \
             --service nginx-service-lb \
             --force-new-deployment
+
+      - name: Wait for ECS stability
+        run: |
+          aws ecs wait services-stable \
+            --cluster devops-cluster \
+            --services nginx-service-lb
