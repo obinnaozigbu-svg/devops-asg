@@ -44,8 +44,29 @@ jobs:
             --service nginx-service-lb \
             --force-new-deployment
 
-      - name: Wait for ECS stability
+      - name: Wait for ECS deployment
         run: |
-          aws ecs wait services-stable \
-            --cluster devops-cluster \
-            --services nginx-service-lb
+          for i in {1..40}; do
+            STATUS=$(aws ecs describe-services \
+              --cluster devops-cluster \
+              --services nginx-service-lb \
+              --query "services[0].deployments[?status=='PRIMARY'].rolloutState" \
+              --output text)
+
+            echo "Current rollout state: $STATUS"
+
+            if [ "$STATUS" = "COMPLETED" ]; then
+              echo "Deployment successful"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "FAILED" ]; then
+              echo "Deployment failed"
+              exit 1
+            fi
+
+            sleep 15
+          done
+
+          echo "Timed out waiting for deployment"
+          exit 1
