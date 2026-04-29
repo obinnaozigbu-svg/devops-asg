@@ -9,43 +9,46 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    env:
+      AWS_REGION: eu-north-1
+      ECR_REPOSITORY: my-nginx-app
+      ECS_CLUSTER: devops-cluster
+      ECS_SERVICE: nginx-service
+
     steps:
-      # 1. Checkout code
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Configure AWS credentials
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-north-1
+          aws-region: ${{ env.AWS_REGION }}
 
-      # 3. Login to ECR
       - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4. Build Docker image
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Build image
         run: |
-          docker build -t my-nginx-app .
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
 
-      # 5. Tag image
       - name: Tag image
         run: |
-          docker tag my-nginx-app:latest 191369739072.dkr.ecr.eu-north-1.amazonaws.com/my-nginx-app:latest
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG \
+          191369739072.dkr.ecr.eu-north-1.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 6. Push image to ECR
       - name: Push image
         run: |
-          docker push 191369739072.dkr.ecr.eu-north-1.amazonaws.com/my-nginx-app:latest
+          docker push 191369739072.dkr.ecr.eu-north-1.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 7. Force ECS deployment refresh
-      - name: Deploy to ECS
+      - name: Update ECS Service
         run: |
           aws ecs update-service \
-            --cluster devops-cluster \
-            --service nginx-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
             --force-new-deployment
