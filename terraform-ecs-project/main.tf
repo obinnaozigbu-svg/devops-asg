@@ -47,7 +47,8 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name  = "nginx"
-      image = "${aws_ecr_repository.app_repo.repository_url}:latest"
+
+      image = "${aws_ecr_repository.app_repo.repository_url}:${var.image_tag}"
 
       essential = true
 
@@ -126,4 +127,9 @@ resource "aws_lb_listener" "http" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
+}
+
+variable "image_tag" {
+  description = "Docker image tag (git commit SHA)"
+  type        = string
 }
