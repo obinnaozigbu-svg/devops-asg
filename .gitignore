@@ -1,0 +1,13 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfstate.backup
+
+# Build artifacts
+dist/
+build/
+node_modules/
+
+# OS files
+.DS_Store
