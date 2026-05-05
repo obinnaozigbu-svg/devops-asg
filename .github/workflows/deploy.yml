@@ -59,3 +59,7 @@ jobs:
           cd terraform-ecs-project
           terraform apply -auto-approve \
             -var="image_tag=${GITHUB_SHA::7}"
+
+      - name: Terraform Init
+        working-directory: terraform-ecs-project
+        run: terraform init -reconfigure
