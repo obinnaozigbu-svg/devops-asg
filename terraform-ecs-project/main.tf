@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket         = "obinna-terraform-state-bucket"
+    key            = "ecs-project/terraform.tfstate"
+    region         = "eu-north-1"
+    dynamodb_table = "terraform-locks"
+  }
+}
+
 provider "aws" {
   region = "eu-north-1"
 }
