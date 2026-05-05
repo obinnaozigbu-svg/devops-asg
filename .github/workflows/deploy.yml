@@ -59,10 +59,3 @@ jobs:
           cd terraform-ecs-project
           terraform apply -auto-approve \
             -var="image_tag=${GITHUB_SHA::7}"
-
-      - name: Update ECS Service
-        run: |
-          aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --force-new-deployment
