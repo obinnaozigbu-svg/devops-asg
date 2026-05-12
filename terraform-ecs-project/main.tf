@@ -3,7 +3,7 @@ terraform {
     bucket         = "obinna-terraform-state-bucket"
     key            = "terraform-ecs-project/terraform.tfstate"
     region         = "eu-north-1"
-    dynamodb_table = "terraform-locks"
+    use_lockfile = true
   }
 }
 
